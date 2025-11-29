@@ -2,7 +2,8 @@ import Foundation
 import CloudKit
 
 /// Metal type enumeration for jewelry repair work
-enum MetalType: String, CaseIterable, Codable, Sendable {
+enum MetalType: String, CaseIterable, Codable, Sendable, Identifiable {
+    var id: String { rawValue }
     case gold14K = "GOLD_14K"
     case gold18K = "GOLD_18K"
     case gold22K = "GOLD_22K"

@@ -240,6 +240,19 @@ final class AuthService: ObservableObject {
         }
     }
     
+    /// Refresh the current session after user data has been updated
+    func refreshSession() async {
+        guard let user = currentSession?.user else { return }
+        do {
+            if let updatedUser = try await repository.fetch(User.self, id: user.id) {
+                let session = try await createUserSession(for: updatedUser)
+                currentSession = session
+            }
+        } catch {
+            print("❌ Error refreshing session: \(error)")
+        }
+    }
+    
     /// Check if current user has permission for specific action
     func hasPermission(for action: PermissionAction) -> Bool {
         guard let session = currentSession else { return false }

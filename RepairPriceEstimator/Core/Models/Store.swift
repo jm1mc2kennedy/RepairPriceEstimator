@@ -2,7 +2,7 @@ import Foundation
 import CloudKit
 
 /// Represents a store entity within a company
-struct Store: Identifiable, Codable, Sendable {
+struct Store: Identifiable, Codable, Sendable, Hashable {
     let id: String
     let companyId: String
     let name: String

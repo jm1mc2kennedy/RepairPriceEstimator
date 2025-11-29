@@ -170,6 +170,7 @@ struct NavigationTile: View {
 struct ProfileView: View {
     @EnvironmentObject var authService: AuthService
     @Environment(\.dismiss) private var dismiss
+    @State private var showingProfileEdit = false
     
     var body: some View {
         NavigationView {
@@ -208,6 +209,16 @@ struct ProfileView: View {
                     
                     Spacer()
                     
+                    Button("Edit Profile") {
+                        showingProfileEdit = true
+                    }
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 50)
+                    .background(Color.primaryBlue)
+                    .foregroundColor(.white)
+                    .cornerRadius(10)
+                    .padding(.horizontal)
+                    
                     Button("Sign Out", role: .destructive) {
                         authService.signOut()
                         dismiss()
@@ -223,7 +234,6 @@ struct ProfileView: View {
             }
             .navigationTitle("Profile")
             .navigationBarTitleDisplayMode(.inline)
-            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Done") {
@@ -231,25 +241,15 @@ struct ProfileView: View {
                     }
                 }
             }
+            .sheet(isPresented: $showingProfileEdit) {
+                ProfileEditView()
+            }
         }
     }
 }
 
 // MARK: - Placeholder Views
 
-struct ReportsView: View {
-    var body: some View {
-        AppText.pageTitle("Reports")
-            .navigationTitle("Reports")
-    }
-}
-
-struct SettingsView: View {
-    var body: some View {
-        AppText.pageTitle("Settings")
-            .navigationTitle("Settings")
-    }
-}
 
 #Preview {
     HomeView()

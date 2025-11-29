@@ -42,7 +42,7 @@ final class GuestListViewModel: ObservableObject {
                 predicate = NSPredicate(format: "companyId == %@", session.company.id)
             }
             
-            let sortDescriptors = [NSSortDescriptor(key: "firstName", ascending: true), NSSortDescriptor(key: "lastName", ascending: true)]
+            let sortDescriptors = [NSSortDescriptor(key: "lastName", ascending: true), NSSortDescriptor(key: "firstName", ascending: true)]
             var fetchedGuests = try await repository.query(Guest.self, predicate: predicate, sortDescriptors: sortDescriptors)
             
             // Filter by search text if provided (name, email, phone)

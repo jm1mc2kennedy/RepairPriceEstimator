@@ -57,7 +57,7 @@ DEFINE SCHEMA
         "___recordID"           REFERENCE,
         companyId               STRING QUERYABLE,
         primaryStoreId          STRING QUERYABLE,
-        firstName               STRING QUERYABLE,
+        firstName               STRING QUERYABLE SORTABLE,
         lastName                STRING QUERYABLE SORTABLE,
         email                   STRING QUERYABLE,
         phone                   STRING,

@@ -11,12 +11,16 @@
 		0188B874A318650BA0D4C677 /* GuestListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAA2B3B72182884510ADD7EA /* GuestListView.swift */; };
 		02AFC20B5880EDFCA800A997 /* PhotoCaptureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66C69C8085CA8CCB2EF030BF /* PhotoCaptureView.swift */; };
 		086AB38B9219C19F86887F81 /* PriceDisplayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D5F6765FA79D48E70B0093A /* PriceDisplayView.swift */; };
+		086B7D5D9F8B888C5010960C /* ProfileEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D043D461B637D8C38B873FB /* ProfileEditView.swift */; };
 		0EBA2DA5FEA8457C8BB4FF1F /* MockDataRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17123B7D212308C5EF0494F2 /* MockDataRepository.swift */; };
 		0F0D3782C6B75CCCC4BAF8C6 /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79FEDE2697AAA38DE12765CC /* AuthService.swift */; };
+		0FB8EE4F8CA7A256F7EDAB78 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11D3170DD181FEDA49A61F8D /* SettingsView.swift */; };
 		118FAF48F3EB22295F6B2573 /* GuestListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76A5C7431197F024CF334956 /* GuestListViewModel.swift */; };
+		14FECB359EDEABD9D4AA97D4 /* ReportsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBCC8EC3E2D83FEC4A2EB401 /* ReportsView.swift */; };
 		15B5027A7C62866A53D672AD /* MandatoryIntakeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 060937A2A9EBF5373CDBD43E /* MandatoryIntakeView.swift */; };
 		1FA08AB26C17A47759E3C287 /* VendorIntegration.swift in Sources */ = {isa = PBXBuildFile; fileRef = C74C03835B8BB3FB4DA0D0F9 /* VendorIntegration.swift */; };
 		204890D6EEB48B60E9EAE1AD /* QuoteIDDisplayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86CC74124206A8F9B65DCD47 /* QuoteIDDisplayView.swift */; };
+		2179B489D17F2285CBB3F3F2 /* CompanyEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10A1790B4CCCEB234AF11654 /* CompanyEditView.swift */; };
 		2444C8B6CD0C1D082E7FB66D /* PhotoUploadService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D8A7A86ACB45DC406369091 /* PhotoUploadService.swift */; };
 		247F047688A70BEC1CE76686 /* Guest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FDB362A1FE84521FD06636F /* Guest.swift */; };
 		24EBF910116C528DC8C3C519 /* QuoteListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD9A37AF9310A1C6D822CBA5 /* QuoteListView.swift */; };
@@ -25,8 +29,10 @@
 		2BFDE7F8CCCAA86D406E5372 /* LooseDiamondDocumentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6025916874CD71193ED235D /* LooseDiamondDocumentation.swift */; };
 		2F94B986CD3D27AC386B4999 /* CloudKitModels+Record.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2146C9E293A6D6E4438A7FF1 /* CloudKitModels+Record.swift */; };
 		34D26B493F932C960934CF3A /* BootstrapService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09267A28C54815191C4612D4 /* BootstrapService.swift */; };
+		388B708F8BC2E1EFF28D764F /* PricingRulesEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 371EE1B5C5A5E6E1021784F2 /* PricingRulesEditView.swift */; };
 		392AEE4A62DA3C24722303A1 /* MetalRatesViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BACC6BC80A2C6306D8807EEE /* MetalRatesViewModel.swift */; };
 		3A5B0803ADCD30F555D4EB4C /* PricingEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9233FF59CCE9C7169E8ED05 /* PricingEngineTests.swift */; };
+		3CFA7E6F742EEA4D3AA2FD21 /* StoreEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E81004E1954B86DCAB158AD6 /* StoreEditView.swift */; };
 		3F16331F668F3C7BE44E217F /* LaborRate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AC98C3174FD2681CA152D77 /* LaborRate.swift */; };
 		437BA1F8257FD33F85BBF244 /* ServiceTypeListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7003F4287258BB76F5A8F406 /* ServiceTypeListView.swift */; };
 		43C7EBE77FAF9079BADD2405 /* RepairPriceEstimatorApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78609491278C5A127535952F /* RepairPriceEstimatorApp.swift */; };
@@ -39,6 +45,7 @@
 		5F26D1791044C8CB2B8B9ECF /* RushMultiplierTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCFA35742F11162B9171CC86 /* RushMultiplierTests.swift */; };
 		69986C94B927A7914EA74351 /* Colors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 499BDB2FEC806A19473CB055 /* Colors.swift */; };
 		6E0DED6B398A79D971485591 /* GuestDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 902E1155A46D7E00D04D97E4 /* GuestDetailView.swift */; };
+		7046BC3EA58F86EA463A2C21 /* UserEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5456671D61A24B31BB30216 /* UserEditView.swift */; };
 		789C1396C9D6716CCD37670E /* SpringersBusinessLogicTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9077A1202112AC4FE725D8CF /* SpringersBusinessLogicTests.swift */; };
 		7B913D6DF2CD7009FC09A7F4 /* IntakeChecklist.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAACD989193AA90A594CC624 /* IntakeChecklist.swift */; };
 		819507063D86FA21BA078E1A /* QuoteListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A3782A4D3F5FD12699F622F /* QuoteListViewModel.swift */; };
@@ -52,6 +59,7 @@
 		9A1204DFAAA3AC817416837B /* InspectionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79A143486C463213C54A51CB /* InspectionService.swift */; };
 		9C26EADE2FAF3CB9E803CD5C /* ServiceType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7554A44EDB1E217403DD2020 /* ServiceType.swift */; };
 		A03F99BCF7B986FD275A2F15 /* ServiceCatalogSeeder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AD600D0D1C0BB8AB1F5DB75 /* ServiceCatalogSeeder.swift */; };
+		A1FF85728B77ABC8015463F7 /* ReportsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4DB72B6821AFB3375FB7BBC /* ReportsViewModel.swift */; };
 		AF2FAD0BD8F2557D580111C6 /* Quote.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A6B543F81BE3C0F63F2EDB8 /* Quote.swift */; };
 		AFF05FAA42B286F1B3200E6A /* UserManagementViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C9F9542CF0A31F1B3969717 /* UserManagementViewModel.swift */; };
 		B0F4A1D26831BE6BFBB0385F /* ServiceTypeListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F099B043B8ECBA376BF05FDC /* ServiceTypeListViewModel.swift */; };
@@ -60,11 +68,13 @@
 		C063C81AED3D09BFF3121092 /* QuoteDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABB66500C540548C8D9CCAFF /* QuoteDetailViewModel.swift */; };
 		C217D50639A83667296A6476 /* PricingRule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A68931E91FA25B9BB30FCE9 /* PricingRule.swift */; };
 		C76FCC424C4A2D6E9306B38F /* MetalMarketRate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83910344225B496418DB23E8 /* MetalMarketRate.swift */; };
+		C8E5C5EB399E2ED32C362780 /* LaborRatesEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AC524740FD932C09E704B8A /* LaborRatesEditView.swift */; };
 		CD1566412FB925C551602CF4 /* LaborRatesViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFE4A7AD44A6FFBB534067C5 /* LaborRatesViewModel.swift */; };
 		D078ED936A13BDF0D15CC2AD /* AppraisalServices.swift in Sources */ = {isa = PBXBuildFile; fileRef = F281FCB9E66BA974546A4C28 /* AppraisalServices.swift */; };
 		D6DA352E36922F4EB3041D10 /* ServiceTypeEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B37D40945B380B0128BEE5D /* ServiceTypeEditView.swift */; };
 		DABBBE45602D4D60D07DE7FB /* QuoteDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C8E9470EF8627A839523974 /* QuoteDetailView.swift */; };
 		DEA19D30FE7581B193732B5B /* WorkflowService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A40966BBB72D3F7F3186EF36 /* WorkflowService.swift */; };
+		E2E8B3A8145D8348A792E8AD /* MetalRatesEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64A93FA9A8261E2B420FBEB1 /* MetalRatesEditView.swift */; };
 		E7B9429564284D5CC1AF8AD6 /* QuoteCreationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4A645272B11D38D5D1CA032 /* QuoteCreationView.swift */; };
 		EA00779FF089FD4B4731F231 /* CommunicationLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CCCAB6CA9183ECF688F09C8 /* CommunicationLog.swift */; };
 		F997AF9CCFDE50CF6B655197 /* CloudKitService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3CCAAA0C55F4C1D3CD0E9A2F /* CloudKitService.swift */; };
@@ -86,7 +96,10 @@
 		060937A2A9EBF5373CDBD43E /* MandatoryIntakeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MandatoryIntakeView.swift; sourceTree = "<group>"; };
 		07DD3EB9AA4E353AD9AAD133 /* Typography.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Typography.swift; sourceTree = "<group>"; };
 		09267A28C54815191C4612D4 /* BootstrapService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BootstrapService.swift; sourceTree = "<group>"; };
+		0AC524740FD932C09E704B8A /* LaborRatesEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaborRatesEditView.swift; sourceTree = "<group>"; };
 		0FEE98B6C1B6938888CCB595 /* CloudKitRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudKitRepository.swift; sourceTree = "<group>"; };
+		10A1790B4CCCEB234AF11654 /* CompanyEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanyEditView.swift; sourceTree = "<group>"; };
+		11D3170DD181FEDA49A61F8D /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		12D9AA9CF211AFC2D8C01FB5 /* ShareSheetViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareSheetViewController.swift; sourceTree = "<group>"; };
 		17123B7D212308C5EF0494F2 /* MockDataRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockDataRepository.swift; sourceTree = "<group>"; };
 		17A26A68EBF25629AE541BB1 /* RepairPriceEstimatorTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = RepairPriceEstimatorTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -98,15 +111,18 @@
 		2CCCAB6CA9183ECF688F09C8 /* CommunicationLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommunicationLog.swift; sourceTree = "<group>"; };
 		2FDB362A1FE84521FD06636F /* Guest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Guest.swift; sourceTree = "<group>"; };
 		3221C07CC9FF985C0B1A398F /* PDFGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFGenerator.swift; sourceTree = "<group>"; };
+		371EE1B5C5A5E6E1021784F2 /* PricingRulesEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PricingRulesEditView.swift; sourceTree = "<group>"; };
 		3CCAAA0C55F4C1D3CD0E9A2F /* CloudKitService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudKitService.swift; sourceTree = "<group>"; };
 		499BDB2FEC806A19473CB055 /* Colors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Colors.swift; sourceTree = "<group>"; };
 		4A68931E91FA25B9BB30FCE9 /* PricingRule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PricingRule.swift; sourceTree = "<group>"; };
 		4A6B543F81BE3C0F63F2EDB8 /* Quote.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Quote.swift; sourceTree = "<group>"; };
 		4AD600D0D1C0BB8AB1F5DB75 /* ServiceCatalogSeeder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceCatalogSeeder.swift; sourceTree = "<group>"; };
 		4C9F9542CF0A31F1B3969717 /* UserManagementViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserManagementViewModel.swift; sourceTree = "<group>"; };
+		4D043D461B637D8C38B873FB /* ProfileEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileEditView.swift; sourceTree = "<group>"; };
 		4E0BDE145074FF0F84081609 /* ShareService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareService.swift; sourceTree = "<group>"; };
 		5760A09B36821510599BBC6D /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
 		5A3782A4D3F5FD12699F622F /* QuoteListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuoteListViewModel.swift; sourceTree = "<group>"; };
+		64A93FA9A8261E2B420FBEB1 /* MetalRatesEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetalRatesEditView.swift; sourceTree = "<group>"; };
 		66C69C8085CA8CCB2EF030BF /* PhotoCaptureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoCaptureView.swift; sourceTree = "<group>"; };
 		6845E965BB5143F59DA2BA0F /* Store.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Store.swift; sourceTree = "<group>"; };
 		6D5F6765FA79D48E70B0093A /* PriceDisplayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PriceDisplayView.swift; sourceTree = "<group>"; };
@@ -133,6 +149,7 @@
 		ABB66500C540548C8D9CCAFF /* QuoteDetailViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuoteDetailViewModel.swift; sourceTree = "<group>"; };
 		B4E19520762E07C8D45D017A /* PricingRulesViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PricingRulesViewModel.swift; sourceTree = "<group>"; };
 		BACC6BC80A2C6306D8807EEE /* MetalRatesViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetalRatesViewModel.swift; sourceTree = "<group>"; };
+		BBCC8EC3E2D83FEC4A2EB401 /* ReportsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReportsView.swift; sourceTree = "<group>"; };
 		BD9A37AF9310A1C6D822CBA5 /* QuoteListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuoteListView.swift; sourceTree = "<group>"; };
 		C4A645272B11D38D5D1CA032 /* QuoteCreationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuoteCreationView.swift; sourceTree = "<group>"; };
 		C74C03835B8BB3FB4DA0D0F9 /* VendorIntegration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VendorIntegration.swift; sourceTree = "<group>"; };
@@ -140,7 +157,10 @@
 		CACA76CADB8D9D6EF806BA5A /* User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
 		CFE4A7AD44A6FFBB534067C5 /* LaborRatesViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaborRatesViewModel.swift; sourceTree = "<group>"; };
 		D9233FF59CCE9C7169E8ED05 /* PricingEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PricingEngineTests.swift; sourceTree = "<group>"; };
+		E4DB72B6821AFB3375FB7BBC /* ReportsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReportsViewModel.swift; sourceTree = "<group>"; };
+		E5456671D61A24B31BB30216 /* UserEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserEditView.swift; sourceTree = "<group>"; };
 		E6025916874CD71193ED235D /* LooseDiamondDocumentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LooseDiamondDocumentation.swift; sourceTree = "<group>"; };
+		E81004E1954B86DCAB158AD6 /* StoreEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreEditView.swift; sourceTree = "<group>"; };
 		EAACD989193AA90A594CC624 /* IntakeChecklist.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntakeChecklist.swift; sourceTree = "<group>"; };
 		F099B043B8ECBA376BF05FDC /* ServiceTypeListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceTypeListViewModel.swift; sourceTree = "<group>"; };
 		F281FCB9E66BA974546A4C28 /* AppraisalServices.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppraisalServices.swift; sourceTree = "<group>"; };
@@ -160,6 +180,14 @@
 			path = RepairPriceEstimatorTests;
 			sourceTree = "<group>";
 		};
+		220145AA8F016E1192A6A6F4 /* Reports */ = {
+			isa = PBXGroup;
+			children = (
+				BBCC8EC3E2D83FEC4A2EB401 /* ReportsView.swift */,
+			);
+			path = Reports;
+			sourceTree = "<group>";
+		};
 		51D50338869474B19EDFE13C /* Features */ = {
 			isa = PBXGroup;
 			children = (
@@ -168,6 +196,8 @@
 				F8C9CD2F53A16C0C9776EB4E /* Guests */,
 				7CB81DFC65D107FEDC574DE6 /* Home */,
 				9E1F94441C36346457B71C77 /* Quotes */,
+				220145AA8F016E1192A6A6F4 /* Reports */,
+				BD7A3B6D0D275D924D956C3E /* Settings */,
 			);
 			path = Features;
 			sourceTree = "<group>";
@@ -262,10 +292,25 @@
 			isa = PBXGroup;
 			children = (
 				86D2BF8B1A526BF750C6E37C /* AdminHomeView.swift */,
+				10A1790B4CCCEB234AF11654 /* CompanyEditView.swift */,
+				0AC524740FD932C09E704B8A /* LaborRatesEditView.swift */,
+				64A93FA9A8261E2B420FBEB1 /* MetalRatesEditView.swift */,
+				371EE1B5C5A5E6E1021784F2 /* PricingRulesEditView.swift */,
 				9B37D40945B380B0128BEE5D /* ServiceTypeEditView.swift */,
 				7003F4287258BB76F5A8F406 /* ServiceTypeListView.swift */,
+				E81004E1954B86DCAB158AD6 /* StoreEditView.swift */,
+				E5456671D61A24B31BB30216 /* UserEditView.swift */,
 			);
 			path = Admin;
+			sourceTree = "<group>";
+		};
+		BD7A3B6D0D275D924D956C3E /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				4D043D461B637D8C38B873FB /* ProfileEditView.swift */,
+				11D3170DD181FEDA49A61F8D /* SettingsView.swift */,
+			);
+			path = Settings;
 			sourceTree = "<group>";
 		};
 		C28C262388D059E0BAFCC1A5 /* RepairPriceEstimator */ = {
@@ -307,6 +352,7 @@
 				9FB5BA7BDEEAD0CD1B9944AB /* QuoteCreationViewModel.swift */,
 				ABB66500C540548C8D9CCAFF /* QuoteDetailViewModel.swift */,
 				5A3782A4D3F5FD12699F622F /* QuoteListViewModel.swift */,
+				E4DB72B6821AFB3375FB7BBC /* ReportsViewModel.swift */,
 				F099B043B8ECBA376BF05FDC /* ServiceTypeListViewModel.swift */,
 				4C9F9542CF0A31F1B3969717 /* UserManagementViewModel.swift */,
 			);
@@ -358,7 +404,7 @@
 			path = Services;
 			sourceTree = "<group>";
 		};
-		"TEMP_8CB551B1-B483-4D27-A908-E40A25448955" /* Resources */ = {
+		"TEMP_5448A685-C44F-4163-8C22-4B6BE8041642" /* Resources */ = {
 			isa = PBXGroup;
 			children = (
 			);
@@ -464,6 +510,7 @@
 				69986C94B927A7914EA74351 /* Colors.swift in Sources */,
 				EA00779FF089FD4B4731F231 /* CommunicationLog.swift in Sources */,
 				01657246F23F59158AB1059C /* Company.swift in Sources */,
+				2179B489D17F2285CBB3F3F2 /* CompanyEditView.swift in Sources */,
 				2685E8A297EE94EA53033E41 /* CompanySettingsViewModel.swift in Sources */,
 				247F047688A70BEC1CE76686 /* Guest.swift in Sources */,
 				6E0DED6B398A79D971485591 /* GuestDetailView.swift in Sources */,
@@ -474,11 +521,13 @@
 				964A046D3503E7AE2173DF73 /* InspectionView.swift in Sources */,
 				7B913D6DF2CD7009FC09A7F4 /* IntakeChecklist.swift in Sources */,
 				3F16331F668F3C7BE44E217F /* LaborRate.swift in Sources */,
+				C8E5C5EB399E2ED32C362780 /* LaborRatesEditView.swift in Sources */,
 				CD1566412FB925C551602CF4 /* LaborRatesViewModel.swift in Sources */,
 				25702271773870F11EBD894D /* LoginView.swift in Sources */,
 				2BFDE7F8CCCAA86D406E5372 /* LooseDiamondDocumentation.swift in Sources */,
 				15B5027A7C62866A53D672AD /* MandatoryIntakeView.swift in Sources */,
 				C76FCC424C4A2D6E9306B38F /* MetalMarketRate.swift in Sources */,
+				E2E8B3A8145D8348A792E8AD /* MetalRatesEditView.swift in Sources */,
 				392AEE4A62DA3C24722303A1 /* MetalRatesViewModel.swift in Sources */,
 				BAA8E8829A167030C52B0749 /* PDFGenerator.swift in Sources */,
 				02AFC20B5880EDFCA800A997 /* PhotoCaptureView.swift in Sources */,
@@ -486,7 +535,9 @@
 				086AB38B9219C19F86887F81 /* PriceDisplayView.swift in Sources */,
 				9327BC2CD83DA5851552423A /* PricingEngine.swift in Sources */,
 				C217D50639A83667296A6476 /* PricingRule.swift in Sources */,
+				388B708F8BC2E1EFF28D764F /* PricingRulesEditView.swift in Sources */,
 				85D709F8E307E4FD1BD17A37 /* PricingRulesViewModel.swift in Sources */,
+				086B7D5D9F8B888C5010960C /* ProfileEditView.swift in Sources */,
 				AF2FAD0BD8F2557D580111C6 /* Quote.swift in Sources */,
 				E7B9429564284D5CC1AF8AD6 /* QuoteCreationView.swift in Sources */,
 				594D7A2C1F662D0418743115 /* QuoteCreationViewModel.swift in Sources */,
@@ -499,16 +550,21 @@
 				819507063D86FA21BA078E1A /* QuoteListViewModel.swift in Sources */,
 				96CAD43C58C80D1457E15DDD /* QuotePhoto.swift in Sources */,
 				43C7EBE77FAF9079BADD2405 /* RepairPriceEstimatorApp.swift in Sources */,
+				14FECB359EDEABD9D4AA97D4 /* ReportsView.swift in Sources */,
+				A1FF85728B77ABC8015463F7 /* ReportsViewModel.swift in Sources */,
 				A03F99BCF7B986FD275A2F15 /* ServiceCatalogSeeder.swift in Sources */,
 				9C26EADE2FAF3CB9E803CD5C /* ServiceType.swift in Sources */,
 				D6DA352E36922F4EB3041D10 /* ServiceTypeEditView.swift in Sources */,
 				437BA1F8257FD33F85BBF244 /* ServiceTypeListView.swift in Sources */,
 				B0F4A1D26831BE6BFBB0385F /* ServiceTypeListViewModel.swift in Sources */,
+				0FB8EE4F8CA7A256F7EDAB78 /* SettingsView.swift in Sources */,
 				5792E37F1EDAD9C5F299A401 /* ShareService.swift in Sources */,
 				4F1B7FC9885F109F41CF12F1 /* ShareSheetViewController.swift in Sources */,
 				59CB2DA1F83227238BC04C06 /* Store.swift in Sources */,
+				3CFA7E6F742EEA4D3AA2FD21 /* StoreEditView.swift in Sources */,
 				8588FF9959195D41B6397FA9 /* Typography.swift in Sources */,
 				4771E23D641E8EF51A2A2336 /* User.swift in Sources */,
+				7046BC3EA58F86EA463A2C21 /* UserEditView.swift in Sources */,
 				AFF05FAA42B286F1B3200E6A /* UserManagementViewModel.swift in Sources */,
 				1FA08AB26C17A47759E3C287 /* VendorIntegration.swift in Sources */,
 				DEA19D30FE7581B193732B5B /* WorkflowService.swift in Sources */,

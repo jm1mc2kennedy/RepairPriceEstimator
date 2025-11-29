@@ -2,7 +2,8 @@ import Foundation
 import CloudKit
 
 /// User role enumeration for role-based access control
-enum UserRole: String, CaseIterable, Codable, Sendable {
+enum UserRole: String, CaseIterable, Codable, Sendable, Identifiable {
+    var id: String { rawValue }
     case superAdmin = "SUPERADMIN"
     case admin = "ADMIN"
     case storeManager = "STORE_MANAGER"
@@ -26,6 +27,17 @@ enum UserRole: String, CaseIterable, Codable, Sendable {
             return true
         case .associate, .benchJeweler:
             return false
+        }
+    }
+    
+    /// User-friendly display name for the role
+    var displayName: String {
+        switch self {
+        case .superAdmin: return "Super Admin"
+        case .admin: return "Admin"
+        case .storeManager: return "Store Manager"
+        case .associate: return "Associate"
+        case .benchJeweler: return "Bench Jeweler"
         }
     }
 }
