@@ -23,6 +23,7 @@ targets:
           - "**/ReferenceDocuments/**"
     resources:
       - path: RepairPriceEstimator/Resources
+        type: resource
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.jewelryrepair.RepairPriceEstimator
@@ -42,7 +43,9 @@ targets:
         INFOPLIST_KEY_CFBundleVersion: "1"
         INFOPLIST_KEY_UIApplicationSupportsMultipleScenes: YES
         INFOPLIST_KEY_UILaunchStoryboardName: LaunchScreen
+        INFOPLIST_KEY_CFBundleIconName: AppIcon
         CODE_SIGN_ENTITLEMENTS: RepairPriceEstimator.entitlements
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ENABLE_PREVIEWS: YES
         SWIFT_OPTIMIZATION_LEVEL: -Onone
       configs:

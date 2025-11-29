@@ -43,6 +43,7 @@
 		594D7A2C1F662D0418743115 /* QuoteCreationViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FB5BA7BDEEAD0CD1B9944AB /* QuoteCreationViewModel.swift */; };
 		59CB2DA1F83227238BC04C06 /* Store.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6845E965BB5143F59DA2BA0F /* Store.swift */; };
 		5F26D1791044C8CB2B8B9ECF /* RushMultiplierTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCFA35742F11162B9171CC86 /* RushMultiplierTests.swift */; };
+		5F61F70984BE87179FFD62AA /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5280D08F3FC5D72DCBB27945 /* Assets.xcassets */; };
 		69986C94B927A7914EA74351 /* Colors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 499BDB2FEC806A19473CB055 /* Colors.swift */; };
 		6E0DED6B398A79D971485591 /* GuestDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 902E1155A46D7E00D04D97E4 /* GuestDetailView.swift */; };
 		7046BC3EA58F86EA463A2C21 /* UserEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5456671D61A24B31BB30216 /* UserEditView.swift */; };
@@ -120,6 +121,7 @@
 		4C9F9542CF0A31F1B3969717 /* UserManagementViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserManagementViewModel.swift; sourceTree = "<group>"; };
 		4D043D461B637D8C38B873FB /* ProfileEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileEditView.swift; sourceTree = "<group>"; };
 		4E0BDE145074FF0F84081609 /* ShareService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareService.swift; sourceTree = "<group>"; };
+		5280D08F3FC5D72DCBB27945 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		5760A09B36821510599BBC6D /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
 		5A3782A4D3F5FD12699F622F /* QuoteListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuoteListViewModel.swift; sourceTree = "<group>"; };
 		64A93FA9A8261E2B420FBEB1 /* MetalRatesEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetalRatesEditView.swift; sourceTree = "<group>"; };
@@ -319,6 +321,7 @@
 				78609491278C5A127535952F /* RepairPriceEstimatorApp.swift */,
 				A57ED9A2B68EFBB5A163CE5B /* Core */,
 				51D50338869474B19EDFE13C /* Features */,
+				F07C7CC46DDF0257ED212084 /* Resources */,
 				E90843A542867906354142E5 /* Shared */,
 			);
 			path = RepairPriceEstimator;
@@ -368,6 +371,14 @@
 			path = DesignSystem;
 			sourceTree = "<group>";
 		};
+		F07C7CC46DDF0257ED212084 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				5280D08F3FC5D72DCBB27945 /* Assets.xcassets */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
 		F2596B0A2E657F14C8A35DDA /* Auth */ = {
 			isa = PBXGroup;
 			children = (
@@ -404,13 +415,6 @@
 			path = Services;
 			sourceTree = "<group>";
 		};
-		"TEMP_ABF78CD1-98A9-4D1F-A404-01EC1E39C2A3" /* Resources */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = Resources;
-			sourceTree = "<group>";
-		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -419,6 +423,7 @@
 			buildConfigurationList = 1613570A354E31AA31A0670D /* Build configuration list for PBXNativeTarget "RepairPriceEstimator" */;
 			buildPhases = (
 				A8F1CBBC5D16D07183A53D41 /* Sources */,
+				C0F027D1A0378FB53298F590 /* Resources */,
 			);
 			buildRules = (
 			);
@@ -483,6 +488,17 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		C0F027D1A0378FB53298F590 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5F61F70984BE87179FFD62AA /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		003F03DFB1B358F8BADEF782 /* Sources */ = {
@@ -694,6 +710,7 @@
 				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleIconName = AppIcon;
 				INFOPLIST_KEY_CFBundleShortVersionString = 1.0.0;
 				INFOPLIST_KEY_CFBundleVersion = 1;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -730,6 +747,7 @@
 				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleIconName = AppIcon;
 				INFOPLIST_KEY_CFBundleShortVersionString = 1.0.0;
 				INFOPLIST_KEY_CFBundleVersion = 1;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
