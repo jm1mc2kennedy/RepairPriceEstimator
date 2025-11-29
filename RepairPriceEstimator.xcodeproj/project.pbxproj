@@ -706,6 +706,7 @@
 				CODE_SIGN_ENTITLEMENTS = RepairPriceEstimator.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
@@ -725,6 +726,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				MARKETING_VERSION = 1.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.jewelryrepair.RepairPriceEstimator;
 				PRODUCT_NAME = RepairPriceEstimator;
 				SDKROOT = iphoneos;
@@ -743,6 +745,7 @@
 				CODE_SIGN_ENTITLEMENTS = RepairPriceEstimator.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
@@ -762,6 +765,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				MARKETING_VERSION = 1.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.jewelryrepair.RepairPriceEstimator;
 				PRODUCT_NAME = RepairPriceEstimator;
 				SDKROOT = iphoneos;

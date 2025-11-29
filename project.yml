@@ -39,6 +39,8 @@ targets:
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
         INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
+        MARKETING_VERSION: "1.0.0"
+        CURRENT_PROJECT_VERSION: "1"
         INFOPLIST_KEY_CFBundleShortVersionString: "1.0.0"
         INFOPLIST_KEY_CFBundleVersion: "1"
         INFOPLIST_KEY_UIApplicationSupportsMultipleScenes: YES
@@ -58,6 +60,10 @@ targets:
           SWIFT_OPTIMIZATION_LEVEL: -O
           DEBUG_INFORMATION_FORMAT: dwarf-with-dsym
           ASSETCATALOG_COMPILER_OPTIMIZATION: time
+          MARKETING_VERSION: "1.0.0"
+          CURRENT_PROJECT_VERSION: "1"
+          INFOPLIST_KEY_CFBundleShortVersionString: "1.0.0"
+          INFOPLIST_KEY_CFBundleVersion: "1"
     scheme:
       testTargets:
         - RepairPriceEstimatorTests
