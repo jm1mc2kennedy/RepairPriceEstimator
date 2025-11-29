@@ -195,16 +195,6 @@ RepairPriceEstimator/
 # Ensure all record types and fields match the app models
 ```
 
-## Default Credentials
-
-For initial setup and development, the app includes default admin credentials:
-
-| Role | Username | Password |
-|------|----------|----------|
-| SUPERADMIN | `SUPERadmin` | `SUPERadmin` |
-| ADMIN | `admin` | `admin` |
-
-**⚠️ Important**: Change these credentials before production deployment.
 
 ## Pricing Engine
 

@@ -1,4 +1,4 @@
-import Foundation
+@preconcurrency import Foundation
 import CloudKit
 
 /// CloudKit implementation of the data repository
@@ -13,6 +13,9 @@ final class CloudKitService: ObservableObject, DataRepository {
     @Published var isSyncing: Bool = false
     
     init(containerIdentifier: String = "iCloud.com.jewelryrepair.estimator") {
+        // Initialize CloudKit container
+        // Note: Container initialization itself doesn't throw, but using it will fail
+        // if entitlements are missing - we handle that in refreshAccountStatus
         self.container = CKContainer(identifier: containerIdentifier)
         self.privateDB = container.privateCloudDatabase
         
@@ -82,14 +85,41 @@ final class CloudKitService: ObservableObject, DataRepository {
         }
     }
     
-    func query<T: CloudKitMappable>(_ type: T.Type, predicate: NSPredicate?, sortDescriptors: [NSSortDescriptor]?) async throws -> [T] {
+    func query<T: CloudKitMappable>(_ type: T.Type, parameters: QueryParameters) async throws -> [T] {
         guard await isAvailable else {
             throw RepositoryError.notSignedInToiCloud
         }
         
         do {
-            let query = CKQuery(recordType: T.recordType, predicate: predicate ?? NSPredicate(value: true))
-            query.sortDescriptors = sortDescriptors
+            // CloudKit requires at least one queryable field in the predicate
+            // If no predicate is provided, create one that matches all records using a queryable field
+            var predicate = parameters.predicate
+            if predicate == nil || predicate == NSPredicate(value: true) {
+                // Use a type-specific queryable field to match all records
+                predicate = defaultPredicateForRecordType(T.recordType)
+            }
+            
+            let query = CKQuery(recordType: T.recordType, predicate: predicate!)
+            // Only add sort descriptor if not provided - use safe fields that exist in schema
+            if parameters.sortDescriptors == nil {
+                switch T.recordType {
+                case "User":
+                    query.sortDescriptors = [NSSortDescriptor(key: "email", ascending: true)]
+                case "Company":
+                    query.sortDescriptors = [NSSortDescriptor(key: "name", ascending: true)]
+                case "Store":
+                    query.sortDescriptors = [NSSortDescriptor(key: "name", ascending: true)]
+                case "Guest":
+                    query.sortDescriptors = [NSSortDescriptor(key: "lastName", ascending: true)]
+                case "Quote":
+                    query.sortDescriptors = [NSSortDescriptor(key: "createdAt", ascending: false)]
+                default:
+                    // Don't set sort descriptor for types where createdAt might not exist
+                    query.sortDescriptors = nil
+                }
+            } else {
+                query.sortDescriptors = parameters.sortDescriptors
+            }
             
             let (matchResults, _) = try await privateDB.records(matching: query)
             
@@ -141,8 +171,59 @@ final class CloudKitService: ObservableObject, DataRepository {
     
     /// Fetch all active records for a company
     func fetchActiveForCompany<T: CloudKitMappable>(_ type: T.Type, companyId: String) async throws -> [T] {
-        let predicate = NSPredicate(format: "companyId == %@ AND isActive == YES", companyId)
+        let predicate = NSPredicate(format: "companyId == %@ AND isActive == 1", companyId)
         return try await query(type, predicate: predicate, sortDescriptors: nil)
+    }
+    
+    // MARK: - Helper Methods
+    
+    /// Returns a default predicate for a record type that uses a queryable field to match all records
+    private func defaultPredicateForRecordType(_ recordType: String) -> NSPredicate {
+        switch recordType {
+        case "User":
+            // User has email as queryable, use a pattern that matches all records
+            return NSPredicate(format: "email != %@", "")
+        case "Company":
+            // Use name field which is always queryable
+            return NSPredicate(format: "name != %@", "")
+        case "Store":
+            return NSPredicate(format: "name != %@", "") // Always true if stores exist
+        case "Guest":
+            return NSPredicate(format: "companyId != %@", "") // All guests have companyId
+        case "Quote":
+            return NSPredicate(format: "createdAt >= %@", Date.distantPast as NSDate)
+        case "QuoteLineItem":
+            return NSPredicate(format: "quoteId != %@", "") // All line items have quoteId
+        case "ServiceType":
+            return NSPredicate(format: "name != %@", "") // Always true if service types exist
+        case "PricingRule":
+            return NSPredicate(format: "name != %@", "") // Always true if rules exist
+        case "MetalMarketRate":
+            return NSPredicate(format: "metalType != %@", "") // Always true if rates exist
+        case "LaborRate":
+            return NSPredicate(format: "role != %@", "") // Always true if rates exist
+        case "QuotePhoto":
+            return NSPredicate(format: "quoteId != %@", "") // All photos have quoteId
+        case "IntakeChecklist":
+            return NSPredicate(format: "quoteId != %@", "") // All checklists have quoteId
+        case "CommunicationLog":
+            return NSPredicate(format: "createdAt >= %@", Date.distantPast as NSDate)
+        case "CommunicationTemplate":
+            return NSPredicate(format: "name != %@", "") // Always true if templates exist
+        case "Vendor":
+            return NSPredicate(format: "name != %@", "") // Always true if vendors exist
+        case "VendorWorkOrder":
+            return NSPredicate(format: "status != %@", "") // All work orders have status
+        case "LooseDiamondDocumentation":
+            return NSPredicate(format: "quoteId != %@", "") // All docs have quoteId
+        case "AppraisalService":
+            return NSPredicate(format: "createdAt >= %@", Date.distantPast as NSDate)
+        case "StatusChangeLog":
+            return NSPredicate(format: "entityType != %@", "") // All logs have entityType
+        default:
+            // Fallback: try to use createdAt if available, otherwise use any queryable string field
+            return NSPredicate(format: "createdAt >= %@", Date.distantPast as NSDate)
+        }
     }
     
     // MARK: - Error Mapping

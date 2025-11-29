@@ -32,7 +32,7 @@ struct QuoteIDDisplayView: View {
                 Button(action: copyQuoteID) {
                     Image(systemName: showingCopiedFeedback ? "checkmark" : "doc.on.doc")
                         .foregroundColor(.primaryBlue)
-                        .font(.system(size: font.pointSize * 0.8))
+                        .font(.system(size: size == .small ? 11 : size == .medium ? 12 : 14))
                 }
                 .buttonStyle(PlainButtonStyle())
             }

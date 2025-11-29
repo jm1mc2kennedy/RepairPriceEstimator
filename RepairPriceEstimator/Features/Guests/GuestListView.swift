@@ -1,29 +1,63 @@
 import SwiftUI
 
 struct GuestListView: View {
-    @State private var searchText = ""
+    @StateObject private var viewModel = GuestListViewModel()
     @State private var showingNewGuest = false
+    @State private var selectedGuest: Guest?
+    @State private var showingGuestDetail = false
     
     var body: some View {
         VStack {
-            // Search Bar
-            SearchBar(text: $searchText)
-                .padding(.vertical)
-            
-            // Guest List
-            List {
-                ForEach(mockGuests) { guest in
-                    NavigationLink(destination: GuestDetailView(guest: guest)) {
-                        GuestRowView(guest: guest)
+            if viewModel.isLoading && viewModel.guests.isEmpty {
+                ProgressView()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else if viewModel.guests.isEmpty && !viewModel.isLoading {
+                VStack(spacing: 20) {
+                    Image(systemName: "person.2")
+                        .font(.system(size: 60))
+                        .foregroundColor(.textTertiary)
+                    AppText.bodyText("No guests found")
+                        .foregroundColor(.textSecondary)
+                    Button("Add Guest") {
+                        showingNewGuest = true
+                    }
+                    .padding()
+                    .background(Color.accentGreen)
+                    .foregroundColor(.white)
+                    .cornerRadius(8)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                // Guest List
+                List {
+                    ForEach(viewModel.guests) { guest in
+                        NavigationLink(destination: GuestDetailView(guest: guest)) {
+                            GuestRowView(guest: guest)
+                        }
+                    }
+                    .onDelete { indexSet in
+                        for index in indexSet {
+                            let guest = viewModel.guests[index]
+                            Task {
+                                do {
+                                    try await viewModel.deleteGuest(guest)
+                                } catch {
+                                    // Error shown via viewModel.showError
+                                }
+                            }
+                        }
                     }
                 }
-            }
-            .refreshable {
-                // Refresh logic
+                .refreshable {
+                    await viewModel.refresh()
+                }
             }
         }
         .navigationTitle("Guests")
-        .searchable(text: $searchText)
+        .searchable(text: $viewModel.searchText)
+        .onChange(of: viewModel.searchText) { _, _ in
+            Task { await viewModel.loadGuests() }
+        }
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button("Add") {
@@ -32,29 +66,16 @@ struct GuestListView: View {
             }
         }
         .sheet(isPresented: $showingNewGuest) {
-            NewGuestView()
+            NewGuestView(viewModel: viewModel)
         }
-    }
-    
-    private var mockGuests: [Guest] {
-        [
-            Guest(
-                companyId: "company1",
-                primaryStoreId: "store1",
-                firstName: "John",
-                lastName: "Smith",
-                email: "john.smith@email.com",
-                phone: "(555) 123-4567"
-            ),
-            Guest(
-                companyId: "company1",
-                primaryStoreId: "store1",
-                firstName: "Jane",
-                lastName: "Doe",
-                email: "jane.doe@email.com",
-                phone: "(555) 987-6543"
-            )
-        ]
+        .alert("Error", isPresented: $viewModel.showError, presenting: viewModel.errorMessage) { _ in
+            Button("OK") { }
+        } message: { error in
+            Text(error)
+        }
+        .task {
+            await viewModel.loadGuests()
+        }
     }
 }
 
@@ -74,13 +95,18 @@ struct GuestRowView: View {
 }
 
 struct NewGuestView: View {
+    @ObservedObject var viewModel: GuestListViewModel
     @State private var firstName = ""
     @State private var lastName = ""
     @State private var email = ""
     @State private var phone = ""
     @State private var notes = ""
+    @State private var isSaving = false
+    @State private var saveError: String?
+    @State private var showingError = false
     
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject var authService: AuthService
     
     var body: some View {
         NavigationView {
@@ -107,16 +133,49 @@ struct NewGuestView: View {
                     Button("Cancel") {
                         dismiss()
                     }
+                    .disabled(isSaving)
                 }
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Save") {
-                        // Save logic
-                        dismiss()
+                        Task {
+                            await saveGuest()
+                        }
                     }
-                    .disabled(firstName.isEmpty || lastName.isEmpty)
+                    .disabled(firstName.isEmpty || lastName.isEmpty || isSaving)
                 }
             }
+            .disabled(isSaving)
+            .alert("Error", isPresented: $showingError, presenting: saveError) { _ in
+                Button("OK") { }
+            } message: { error in
+                Text(error)
+            }
+        }
+    }
+    
+    private func saveGuest() async {
+        guard let session = authService.currentSession else { return }
+        
+        isSaving = true
+        defer { isSaving = false }
+        
+        let newGuest = Guest(
+            companyId: session.company.id,
+            primaryStoreId: session.primaryStore.id,
+            firstName: firstName.trimmingCharacters(in: .whitespaces),
+            lastName: lastName.trimmingCharacters(in: .whitespaces),
+            email: email.isEmpty ? nil : email.trimmingCharacters(in: .whitespaces),
+            phone: phone.isEmpty ? nil : phone.trimmingCharacters(in: .whitespaces),
+            notes: notes.isEmpty ? nil : notes.trimmingCharacters(in: .whitespaces)
+        )
+        
+        do {
+            _ = try await viewModel.createGuest(newGuest)
+            dismiss()
+        } catch {
+            saveError = error.localizedDescription
+            showingError = true
         }
     }
 }

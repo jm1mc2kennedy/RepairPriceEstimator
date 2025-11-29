@@ -117,8 +117,9 @@ struct NavigationTileData: Identifiable {
     let destination: AnyView
     let requiredPermissions: [PermissionAction]
     
+    @MainActor
     func isEnabled(for session: UserSession?) -> Bool {
-        guard let session = session else { return false }
+        guard session != nil else { return false }
         guard !requiredPermissions.isEmpty else { return true }
         
         return requiredPermissions.allSatisfy { permission in

@@ -48,11 +48,18 @@ extension QuoteStatus {
         switch self {
         case .draft: return .statusDraft
         case .presented: return .statusPresented
+        case .awaitingApproval: return .statusPresented
         case .approved: return .statusApproved
         case .declined: return .statusDeclined
-        case .inProgress: return .statusInProgress
+        case .inShop: return .statusInProgress
+        case .atVendor: return .statusInProgress
+        case .qualityReview: return .statusInProgress
+        case .qualityFailed: return .statusDeclined
+        case .rework: return .statusInProgress
+        case .readyForPickup: return .statusApproved
         case .completed: return .statusCompleted
         case .closed: return .statusClosed
+        case .cancelled: return .statusDeclined
         }
     }
 }
@@ -62,9 +69,11 @@ extension ServiceCategory {
     var color: Color {
         switch self {
         case .jewelryRepair: return .accentGold
-        case .watchRepair: return .primaryBlue
-        case .cleaning: return .accentGreen
+        case .watchService: return .primaryBlue
+        case .carePlan: return .accentGreen
+        case .estateLiquidation: return .textTertiary
         case .appraisal: return .primaryDark
+        case .cleaning: return .accentGreen
         case .customDesign: return .accentSilver
         case .engraving: return .textSecondary
         case .other: return .textTertiary

@@ -39,6 +39,7 @@ struct User: Identifiable, Codable, Sendable {
     let displayName: String
     let email: String
     let isActive: Bool
+    let createdAt: Date
     
     init(
         id: String = UUID().uuidString,
@@ -47,7 +48,8 @@ struct User: Identifiable, Codable, Sendable {
         role: UserRole,
         displayName: String,
         email: String,
-        isActive: Bool = true
+        isActive: Bool = true,
+        createdAt: Date = Date()
     ) {
         self.id = id
         self.companyId = companyId
@@ -56,6 +58,7 @@ struct User: Identifiable, Codable, Sendable {
         self.displayName = displayName
         self.email = email
         self.isActive = isActive
+        self.createdAt = createdAt
     }
 }
 

@@ -5,7 +5,7 @@ import Foundation
 final class BootstrapService: ObservableObject {
     static let shared = BootstrapService()
     
-    private let repository: DataRepository
+    nonisolated(unsafe) private let repository: DataRepository
     @Published var isBootstrapped: Bool = false
     @Published var isBootstrapping: Bool = false
     
@@ -15,12 +15,36 @@ final class BootstrapService: ObservableObject {
     
     /// Bootstrap initial data if needed
     func bootstrapInitialData() async throws {
-        guard await repository.isAvailable else {
+        // Access CloudKitService directly to avoid protocol concurrency issues
+        let cloudKitService = CloudKitService.shared
+        guard await cloudKitService.isAvailable else {
             throw RepositoryError.notSignedInToiCloud
         }
         
         // Check if already bootstrapped
         if await isSystemBootstrapped() {
+            // Verify ADMIN and SUPERADMIN users exist (required for hardcoded credentials)
+            do {
+                // Check for ADMIN user
+                let adminPredicate = NSPredicate(format: "role == %@ AND isActive == 1", UserRole.admin.rawValue)
+                let adminUsers = try await repository.query(User.self, predicate: adminPredicate, sortDescriptors: nil)
+                
+                // Check for SUPERADMIN user
+                let superAdminPredicate = NSPredicate(format: "role == %@ AND isActive == 1", UserRole.superAdmin.rawValue)
+                let superAdminUsers = try await repository.query(User.self, predicate: superAdminPredicate, sortDescriptors: nil)
+                
+                if adminUsers.isEmpty || superAdminUsers.isEmpty {
+                    print("⚠️  Bootstrap detected but required admin users missing.")
+                    print("   Found ADMIN: \(adminUsers.count), SUPERADMIN: \(superAdminUsers.count)")
+                    print("   Creating missing admin users...")
+                    try await createInitialUsers()
+                } else {
+                    print("ℹ️  Bootstrap already complete: Found ADMIN and SUPERADMIN users")
+                }
+            } catch {
+                print("⚠️  Could not verify admin users, attempting to create: \(error)")
+                try await createInitialUsers()
+            }
             isBootstrapped = true
             return
         }
@@ -45,8 +69,9 @@ final class BootstrapService: ObservableObject {
     
     private func isSystemBootstrapped() async -> Bool {
         do {
-            // Check if any companies exist
-            let companies = try await repository.query(Company.self, predicate: nil, sortDescriptors: nil)
+            // Check if any companies exist by querying using a queryable field (name)
+            let predicate = NSPredicate(format: "name != %@", "")
+            let companies = try await repository.query(Company.self, predicate: predicate, sortDescriptors: [NSSortDescriptor(key: "name", ascending: true)])
             return !companies.isEmpty
         } catch {
             print("❌ Error checking bootstrap status: \(error)")
@@ -82,44 +107,78 @@ final class BootstrapService: ObservableObject {
         print("👥 Creating initial users...")
         
         // Get the company ID
-        let companies = try await repository.query(Company.self, predicate: nil, sortDescriptors: nil)
+        let predicate = NSPredicate(format: "name != %@", "")
+        let companies = try await repository.query(Company.self, predicate: predicate, sortDescriptors: [NSSortDescriptor(key: "name", ascending: true)])
         guard let company = companies.first else {
             throw BootstrapError.missingCompanyData
         }
         
-        let stores = try await repository.fetchForCompany(Store.self, companyId: company.id)
+        let storePredicate = NSPredicate(format: "companyId == %@", company.id)
+        let stores = try await repository.query(Store.self, predicate: storePredicate, sortDescriptors: nil)
         guard let store = stores.first else {
             throw BootstrapError.missingStoreData
         }
         
-        // Create SUPERADMIN user
-        let superAdmin = User(
-            companyId: company.id,
-            storeIds: [store.id],
-            role: .superAdmin,
-            displayName: "Super Administrator",
-            email: "superadmin@jewelryrepair.com"
-        )
-        _ = try await repository.save(superAdmin)
+        // Check if SUPERADMIN already exists
+        let superAdminCheck = NSPredicate(format: "role == %@ AND isActive == 1", UserRole.superAdmin.rawValue)
+        let existingSuperAdmins = try await repository.query(User.self, predicate: superAdminCheck, sortDescriptors: nil)
         
-        // Create ADMIN user
-        let admin = User(
-            companyId: company.id,
-            storeIds: [store.id],
-            role: .admin,
-            displayName: "Administrator",
-            email: "admin@jewelryrepair.com"
-        )
-        _ = try await repository.save(admin)
+        if existingSuperAdmins.isEmpty {
+            // Create SUPERADMIN user
+            let superAdmin = User(
+                companyId: company.id,
+                storeIds: [store.id],
+                role: .superAdmin,
+                displayName: "Super Administrator",
+                email: "superadmin@jewelryrepair.com",
+                isActive: true
+            )
+            let savedSuperAdmin = try await repository.save(superAdmin)
+            print("✅ Created SUPERADMIN user: \(savedSuperAdmin.email) (ID: \(savedSuperAdmin.id))")
+        } else {
+            print("ℹ️  SUPERADMIN user already exists: \(existingSuperAdmins.first?.email ?? "unknown")")
+        }
         
-        print("✅ Created SUPERADMIN user")
-        print("✅ Created ADMIN user")
+        // Check if ADMIN already exists
+        let adminCheck = NSPredicate(format: "role == %@ AND isActive == 1", UserRole.admin.rawValue)
+        let existingAdmins = try await repository.query(User.self, predicate: adminCheck, sortDescriptors: nil)
+        
+        if existingAdmins.isEmpty {
+            // Create ADMIN user
+            let admin = User(
+                companyId: company.id,
+                storeIds: [store.id],
+                role: .admin,
+                displayName: "Administrator",
+                email: "admin@jewelryrepair.com",
+                isActive: true
+            )
+            let savedAdmin = try await repository.save(admin)
+            print("✅ Created ADMIN user: \(savedAdmin.email) (ID: \(savedAdmin.id))")
+        } else {
+            print("ℹ️  ADMIN user already exists: \(existingAdmins.first?.email ?? "unknown")")
+        }
+        
+        // Verify users were actually created by querying them back
+        do {
+            let verifyPredicate = NSPredicate(format: "role == %@ AND isActive == 1", UserRole.admin.rawValue)
+            let verifyUsers = try await repository.query(User.self, predicate: verifyPredicate, sortDescriptors: nil)
+            print("✅ Verification: Found \(verifyUsers.count) ADMIN user(s) in database")
+            
+            let superAdminPredicate = NSPredicate(format: "role == %@ AND isActive == 1", UserRole.superAdmin.rawValue)
+            let verifySuperAdmins = try await repository.query(User.self, predicate: superAdminPredicate, sortDescriptors: nil)
+            print("✅ Verification: Found \(verifySuperAdmins.count) SUPERADMIN user(s) in database")
+        } catch {
+            print("⚠️  Warning: Could not verify user creation: \(error)")
+            print("   Error details: \(error)")
+        }
     }
     
     private func createDefaultPricingRules() async throws {
         print("💰 Creating default pricing rules...")
         
-        let companies = try await repository.query(Company.self, predicate: nil, sortDescriptors: nil)
+        let predicate = NSPredicate(format: "name != %@", "")
+        let companies = try await repository.query(Company.self, predicate: predicate, sortDescriptors: [NSSortDescriptor(key: "name", ascending: true)])
         guard let company = companies.first else {
             throw BootstrapError.missingCompanyData
         }
@@ -149,7 +208,8 @@ final class BootstrapService: ObservableObject {
     private func createDefaultServiceTypes() async throws {
         print("🔧 Creating default service types...")
         
-        let companies = try await repository.query(Company.self, predicate: nil, sortDescriptors: nil)
+        let predicate = NSPredicate(format: "name != %@", "")
+        let companies = try await repository.query(Company.self, predicate: predicate, sortDescriptors: [NSSortDescriptor(key: "name", ascending: true)])
         guard let company = companies.first else {
             throw BootstrapError.missingCompanyData
         }
@@ -198,7 +258,7 @@ final class BootstrapService: ObservableObject {
             ServiceType(
                 companyId: company.id,
                 name: "Watch Battery Replacement",
-                category: .watchRepair,
+                category: .watchService,
                 defaultSku: "WB-REP",
                 defaultLaborMinutes: 10,
                 baseRetail: 15.00,
@@ -225,7 +285,8 @@ final class BootstrapService: ObservableObject {
     private func createDefaultMetalRates() async throws {
         print("🥇 Creating default metal market rates...")
         
-        let companies = try await repository.query(Company.self, predicate: nil, sortDescriptors: nil)
+        let predicate = NSPredicate(format: "name != %@", "")
+        let companies = try await repository.query(Company.self, predicate: predicate, sortDescriptors: [NSSortDescriptor(key: "name", ascending: true)])
         guard let company = companies.first else {
             throw BootstrapError.missingCompanyData
         }
@@ -267,7 +328,8 @@ final class BootstrapService: ObservableObject {
     private func createDefaultLaborRates() async throws {
         print("⚒️ Creating default labor rates...")
         
-        let companies = try await repository.query(Company.self, predicate: nil, sortDescriptors: nil)
+        let predicate = NSPredicate(format: "name != %@", "")
+        let companies = try await repository.query(Company.self, predicate: predicate, sortDescriptors: [NSSortDescriptor(key: "name", ascending: true)])
         guard let company = companies.first else {
             throw BootstrapError.missingCompanyData
         }

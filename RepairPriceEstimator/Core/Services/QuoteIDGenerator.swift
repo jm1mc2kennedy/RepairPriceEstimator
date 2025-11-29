@@ -3,7 +3,7 @@ import Foundation
 /// Service for generating unique human-readable Quote IDs
 @MainActor
 final class QuoteIDGenerator {
-    private let repository: DataRepository
+    nonisolated(unsafe) private let repository: DataRepository
     private static let idPrefix = "Q"
     private static let sequenceLength = 6 // Results in 000001, 000002, etc.
     

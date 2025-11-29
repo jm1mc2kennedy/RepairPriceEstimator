@@ -39,20 +39,24 @@ struct PricingBreakdown: Sendable {
 /// Service for calculating repair pricing based on business rules
 @MainActor
 final class PricingEngine: ObservableObject {
-    private let repository: DataRepository
+    nonisolated(unsafe) private let repository: DataRepository
     
     init(repository: DataRepository = CloudKitService.shared) {
         self.repository = repository
     }
     
-    /// Calculate pricing for a repair service
+    /// Calculate pricing for a repair service with Springer's business rules
     func calculatePrice(
         serviceType: ServiceType,
         metalType: MetalType?,
         metalWeightGrams: Decimal?,
         laborMinutes: Int,
         isRush: Bool,
-        companyId: String
+        companyId: String,
+        springersItem: Bool = false,
+        rushType: RushType = .standard,
+        requestedDueDate: Date? = nil,
+        sizingCategory: SizingCategory? = nil
     ) async throws -> PricingResult {
         
         var notes: [String] = []
@@ -78,21 +82,52 @@ final class PricingEngine: ObservableObject {
             warnings: &warnings
         )
         
-        // Apply formula
+        // Apply service-specific pricing if applicable
+        let (serviceBaseRetail, serviceBaseCost) = calculateServiceSpecificPricing(
+            serviceType: serviceType,
+            sizingCategory: sizingCategory,
+            metalType: metalType,
+            notes: &notes
+        )
+        
+        // Use service-specific pricing if available, otherwise calculate from formula
         let formula = pricingRule.formulaDefinition
-        let baseCost = metalCost + laborCost + formula.fixedFee
+        let baseCost: Decimal
+        let baseRetail: Decimal
+        let materialMarkup: Decimal
+        let laborMarkup: Decimal
         
-        // Calculate markups
-        let materialMarkup = metalCost * formula.metalMarkupPercentage
-        let laborMarkup = laborCost * formula.laborMarkupPercentage
-        let baseRetail = baseCost + materialMarkup + laborMarkup
+        if serviceBaseRetail > 0 || serviceBaseCost > 0 {
+            // Use specific pricing from service catalog
+            baseCost = serviceBaseCost
+            baseRetail = serviceBaseRetail
+            materialMarkup = 0 // Already included in specific pricing
+            laborMarkup = 0    // Already included in specific pricing
+        } else {
+            // Calculate using formula
+            baseCost = metalCost + laborCost + formula.fixedFee
+            materialMarkup = metalCost * formula.metalMarkupPercentage
+            laborMarkup = laborCost * formula.laborMarkupPercentage
+            baseRetail = baseCost + materialMarkup + laborMarkup
+        }
         
-        // Apply rush multiplier
-        let rushMultiplier = isRush ? formula.rushMultiplier : 1.0
-        let rushFee = isRush ? (baseRetail * (rushMultiplier - 1)) : 0
+        // Apply Springer's rush policy
+        let (rushMultiplier, rushFee, shouldApplyRush) = try await calculateSpringersRushPricing(
+            baseRetail: baseRetail,
+            rushType: rushType,
+            springersItem: springersItem,
+            serviceType: serviceType,
+            requestedDueDate: requestedDueDate,
+            formula: formula,
+            notes: &notes,
+            warnings: &warnings
+        )
         
         // Calculate final retail price
-        var finalRetail = baseRetail * rushMultiplier
+        var finalRetail = baseRetail
+        if shouldApplyRush {
+            finalRetail = baseRetail * rushMultiplier
+        }
         
         // Apply minimum charge if specified
         if let minimumCharge = formula.minimumCharge, finalRetail < minimumCharge {
@@ -101,8 +136,10 @@ final class PricingEngine: ObservableObject {
         }
         
         // Add notes about the calculation
-        if isRush {
-            notes.append("Rush multiplier applied: \(rushMultiplier)×")
+        if shouldApplyRush && rushMultiplier > 1.0 {
+            notes.append("Rush multiplier applied: \(rushMultiplier)× (Springer's policy)")
+        } else if rushType != .standard && springersItem {
+            notes.append("Rush requested but no fee applied (Springer's purchase)")
         }
         
         let breakdown = PricingBreakdown(
@@ -136,7 +173,7 @@ final class PricingEngine: ObservableObject {
         }
         
         // Otherwise, get the default pricing rule for the company
-        let predicate = NSPredicate(format: "companyId == %@ AND isActive == YES", companyId)
+        let predicate = NSPredicate(format: "companyId == %@ AND isActive == 1", companyId)
         let rules = try await repository.query(PricingRule.self, predicate: predicate, sortDescriptors: nil)
         
         guard let defaultRule = rules.first else {
@@ -169,7 +206,7 @@ final class PricingEngine: ObservableObject {
         }
         
         // Get current market rate
-        let predicate = NSPredicate(format: "companyId == %@ AND metalType == %@ AND isActive == YES", companyId, metalType.rawValue)
+        let predicate = NSPredicate(format: "companyId == %@ AND metalType == %@ AND isActive == 1", companyId, metalType.rawValue)
         let sortDescriptors = [NSSortDescriptor(key: "effectiveDate", ascending: false)]
         let rates = try await repository.query(MetalMarketRate.self, predicate: predicate, sortDescriptors: sortDescriptors)
         
@@ -203,7 +240,7 @@ final class PricingEngine: ObservableObject {
         }
         
         // Get bench jeweler labor rate
-        let predicate = NSPredicate(format: "companyId == %@ AND role == %@ AND isActive == YES", companyId, UserRole.benchJeweler.rawValue)
+        let predicate = NSPredicate(format: "companyId == %@ AND role == %@ AND isActive == 1", companyId, UserRole.benchJeweler.rawValue)
         let sortDescriptors = [NSSortDescriptor(key: "effectiveDate", ascending: false)]
         let rates = try await repository.query(LaborRate.self, predicate: predicate, sortDescriptors: sortDescriptors)
         
@@ -211,7 +248,7 @@ final class PricingEngine: ObservableObject {
             warnings.append("No labor rate found for bench jeweler")
             // Use fallback rate
             let fallbackRate = Decimal(75) // $75/hour fallback
-            let cost = laborRate?.calculateCost(minutes: minutes) ?? (Decimal(minutes) / 60 * fallbackRate)
+            let cost = Decimal(minutes) / 60 * fallbackRate
             warnings.append("Using fallback rate of \(formatCurrency(fallbackRate))/hour")
             return cost
         }
@@ -221,6 +258,141 @@ final class PricingEngine: ObservableObject {
         notes.append("\(hours)h labor at \(formatCurrency(laborRate.ratePerHour))/h = \(formatCurrency(cost))")
         
         return cost
+    }
+    
+    private func calculateSpringersRushPricing(
+        baseRetail: Decimal,
+        rushType: RushType,
+        springersItem: Bool,
+        serviceType: ServiceType,
+        requestedDueDate: Date?,
+        formula: PricingFormula,
+        notes: inout [String],
+        warnings: inout [String]
+    ) async throws -> (multiplier: Decimal, fee: Decimal, shouldApply: Bool) {
+        
+        guard rushType != .standard else {
+            return (1.0, 0.0, false)
+        }
+        
+        // Check if service supports rush
+        guard serviceType.supportsRush else {
+            warnings.append("Service type \(serviceType.name) cannot be rushed")
+            return (1.0, 0.0, false)
+        }
+        
+        // Springer's items get free rush service
+        if springersItem {
+            notes.append("Springer's purchase - no rush fee applied")
+            return (1.0, 0.0, false)
+        }
+        
+        // Check timing constraints for same-day
+        if rushType == .sameDay {
+            let now = Date()
+            let calendar = Calendar.current
+            let hour = calendar.component(.hour, from: now)
+            
+            if hour >= RushType.sameDayCutoff {
+                warnings.append("Same-day request after 2PM cutoff - requires coordinator approval")
+            }
+            
+            notes.append("Same-day rush service requested")
+        }
+        
+        // Calculate rush timing
+        if let dueDate = requestedDueDate {
+            let hoursUntilDue = dueDate.timeIntervalSinceNow / 3600
+            
+            if hoursUntilDue <= 24 {
+                notes.append("Same-day completion requested (\(Int(hoursUntilDue)) hours)")
+            } else if hoursUntilDue <= 48 {
+                notes.append("48-hour rush requested (\(Int(hoursUntilDue)) hours)")
+            }
+        }
+        
+        // Apply 1.5× multiplier for non-Springer's items
+        let rushMultiplier = formula.rushMultiplier
+        let rushFee = baseRetail * (rushMultiplier - 1)
+        
+        notes.append("Non-Springer's item - rush multiplier: \(rushMultiplier)×")
+        
+        return (rushMultiplier, rushFee, true)
+    }
+    
+    /// Calculate service-specific pricing (e.g., ring sizing variations)
+    private func calculateServiceSpecificPricing(
+        serviceType: ServiceType,
+        sizingCategory: SizingCategory?,
+        metalType: MetalType?,
+        notes: inout [String]
+    ) -> (baseRetail: Decimal, baseCost: Decimal) {
+        
+        // For ring sizing, pricing varies by metal type and size category
+        if serviceType.category == .jewelryRepair && 
+           serviceType.name.contains("Sizing") &&
+           !serviceType.isGenericSku {
+            
+            notes.append("Using specific pricing for \(serviceType.name)")
+            return (serviceType.baseRetail, serviceType.baseCost)
+        }
+        
+        // For generic SKUs, use base pricing that can be overridden
+        if serviceType.isGenericSku {
+            notes.append("Generic SKU - pricing will be entered manually")
+            return (0, 0) // To be filled in manually by staff
+        }
+        
+        // Standard service pricing
+        return (serviceType.baseRetail, serviceType.baseCost)
+    }
+    
+    /// Check if item was purchased at Springer's based on sales SKU
+    func verifySpringersItem(salesSku: String?, companyId: String) async throws -> Bool {
+        // This would integrate with sales system in production
+        // For now, simple validation based on SKU pattern
+        guard let sku = salesSku else { return false }
+        
+        // Springer's SKUs typically follow certain patterns
+        let springersPatterns = ["PUR", "PRST", "SPR", "14K", "18K", "PLAT"]
+        
+        return springersPatterns.contains { pattern in
+            sku.hasPrefix(pattern)
+        }
+    }
+    
+    /// Calculate watch bracelet sizing based on Springer's policy
+    func calculateWatchBraceletSizing(
+        springersItem: Bool,
+        serviceDescription: String,
+        companyId: String
+    ) async throws -> PricingResult {
+        
+        let notes: [String] = springersItem 
+            ? ["Watch bracelet sizing - no charge (Springer's purchase)"]
+            : ["Watch bracelet sizing - $20 for non-Springer's items"]
+        
+        let retail: Decimal = springersItem ? 0 : 20
+        let cost: Decimal = springersItem ? 0 : 5
+        
+        let breakdown = PricingBreakdown(
+            metalCost: 0,
+            laborCost: cost,
+            fixedFees: 0,
+            materialMarkup: 0,
+            laborMarkup: retail - cost,
+            rushFee: 0
+        )
+        
+        return PricingResult(
+            baseCost: cost,
+            baseRetail: retail,
+            rushMultiplier: 1.0,
+            finalRetail: retail,
+            breakdown: breakdown,
+            notes: notes,
+            warnings: []
+        )
     }
     
     private func formatCurrency(_ amount: Decimal) -> String {

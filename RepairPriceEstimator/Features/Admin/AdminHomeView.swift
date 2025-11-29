@@ -95,8 +95,9 @@ struct AdminTileData: Identifiable {
     let destination: AnyView
     let requiredPermissions: [PermissionAction]
     
+    @MainActor
     func isEnabled(for session: UserSession?) -> Bool {
-        guard let session = session else { return false }
+        guard session != nil else { return false }
         guard !requiredPermissions.isEmpty else { return true }
         
         return requiredPermissions.allSatisfy { permission in
@@ -142,40 +143,226 @@ struct AdminTile: View {
     }
 }
 
-// MARK: - Placeholder Admin Views
+// MARK: - Admin Views
 
 struct PricingRulesView: View {
+    @StateObject private var viewModel = PricingRulesViewModel()
+    
     var body: some View {
-        AppText.pageTitle("Pricing Rules")
-            .navigationTitle("Pricing Rules")
+        Group {
+            if viewModel.isLoading && viewModel.pricingRules.isEmpty {
+                ProgressView()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else if viewModel.pricingRules.isEmpty {
+                VStack(spacing: 20) {
+                    Image(systemName: "dollarsign.circle")
+                        .font(.system(size: 60))
+                        .foregroundColor(.textTertiary)
+                    AppText.bodyText("No pricing rules configured")
+                        .foregroundColor(.textSecondary)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                List {
+                    ForEach(viewModel.pricingRules) { rule in
+                        VStack(alignment: .leading, spacing: 8) {
+                            AppText.bodyText(rule.name)
+                            AppText.bodySecondary(rule.description)
+                        }
+                        .padding(.vertical, 4)
+                    }
+                }
+            }
+        }
+        .navigationTitle("Pricing Rules")
+        .task {
+            await viewModel.loadPricingRules()
+        }
+        .refreshable {
+            await viewModel.refresh()
+        }
     }
 }
 
 struct MetalRatesView: View {
+    @StateObject private var viewModel = MetalRatesViewModel()
+    
     var body: some View {
-        AppText.pageTitle("Metal Rates")
-            .navigationTitle("Metal Rates")
+        Group {
+            if viewModel.isLoading && viewModel.metalRates.isEmpty {
+                ProgressView()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else if viewModel.metalRates.isEmpty {
+                VStack(spacing: 20) {
+                    Image(systemName: "sparkles")
+                        .font(.system(size: 60))
+                        .foregroundColor(.textTertiary)
+                    AppText.bodyText("No metal rates configured")
+                        .foregroundColor(.textSecondary)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                List {
+                    ForEach(viewModel.metalRates) { rate in
+                        HStack {
+                            VStack(alignment: .leading, spacing: 4) {
+                                AppText.bodyText(rate.metalType.displayName)
+                                AppText.bodySecondary("Updated: \(formatDate(rate.effectiveDate))")
+                            }
+                            Spacer()
+                            AppText.priceSmall(rate.rate, currencyCode: "USD")
+                        }
+                        .padding(.vertical, 4)
+                    }
+                }
+            }
+        }
+        .navigationTitle("Metal Rates")
+        .task {
+            await viewModel.loadMetalRates()
+        }
+        .refreshable {
+            await viewModel.refresh()
+        }
+    }
+    
+    private func formatDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        return formatter.string(from: date)
     }
 }
 
 struct LaborRatesView: View {
+    @StateObject private var viewModel = LaborRatesViewModel()
+    
     var body: some View {
-        AppText.pageTitle("Labor Rates")
-            .navigationTitle("Labor Rates")
+        Group {
+            if viewModel.isLoading && viewModel.laborRates.isEmpty {
+                ProgressView()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else if viewModel.laborRates.isEmpty {
+                VStack(spacing: 20) {
+                    Image(systemName: "clock")
+                        .font(.system(size: 60))
+                        .foregroundColor(.textTertiary)
+                    AppText.bodyText("No labor rates configured")
+                        .foregroundColor(.textSecondary)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                List {
+                    ForEach(viewModel.laborRates) { rate in
+                        HStack {
+                            VStack(alignment: .leading, spacing: 4) {
+                                AppText.bodyText(rate.role.rawValue)
+                                AppText.bodySecondary("Updated: \(formatDate(rate.effectiveDate))")
+                            }
+                            Spacer()
+                            AppText.bodyText(rate.formattedRate)
+                        }
+                        .padding(.vertical, 4)
+                    }
+                }
+            }
+        }
+        .navigationTitle("Labor Rates")
+        .task {
+            await viewModel.loadLaborRates()
+        }
+        .refreshable {
+            await viewModel.refresh()
+        }
+    }
+    
+    private func formatDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        return formatter.string(from: date)
     }
 }
 
 struct UserManagementView: View {
+    @StateObject private var viewModel = UserManagementViewModel()
+    
     var body: some View {
-        AppText.pageTitle("User Management")
-            .navigationTitle("Users")
+        Group {
+            if viewModel.isLoading && viewModel.users.isEmpty {
+                ProgressView()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else if viewModel.users.isEmpty {
+                VStack(spacing: 20) {
+                    Image(systemName: "person.2")
+                        .font(.system(size: 60))
+                        .foregroundColor(.textTertiary)
+                    AppText.bodyText("No users found")
+                        .foregroundColor(.textSecondary)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                List {
+                    ForEach(viewModel.users) { user in
+                        VStack(alignment: .leading, spacing: 8) {
+                            AppText.bodyText(user.displayName)
+                            AppText.bodySecondary(user.email)
+                            AppText.caption("Role: \(user.role.rawValue) • \(user.isActive ? "Active" : "Inactive")")
+                        }
+                        .padding(.vertical, 4)
+                    }
+                }
+                .searchable(text: $viewModel.searchText)
+                .onChange(of: viewModel.searchText) { _, _ in
+                    Task { await viewModel.loadUsers() }
+                }
+            }
+        }
+        .navigationTitle("Users")
+        .task {
+            await viewModel.loadUsers()
+        }
+        .refreshable {
+            await viewModel.refresh()
+        }
     }
 }
 
 struct CompanySettingsView: View {
+    @StateObject private var viewModel = CompanySettingsViewModel()
+    
     var body: some View {
-        AppText.pageTitle("Company Settings")
-            .navigationTitle("Company")
+        Group {
+            if viewModel.isLoading {
+                ProgressView()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                List {
+                    if let company = viewModel.company {
+                        Section("Company Information") {
+                            DetailRow(label: "Name", value: company.name)
+                            DetailRow(label: "Contact", value: company.primaryContactInfo)
+                        }
+                    }
+                    
+                    Section("Stores") {
+                        ForEach(viewModel.stores) { store in
+                            VStack(alignment: .leading, spacing: 8) {
+                                AppText.bodyText(store.name)
+                                AppText.bodySecondary(store.location)
+                                AppText.bodySecondary(store.phone)
+                            }
+                            .padding(.vertical, 4)
+                        }
+                    }
+                }
+            }
+        }
+        .navigationTitle("Company Settings")
+        .task {
+            await viewModel.loadData()
+        }
+        .refreshable {
+            await viewModel.refresh()
+        }
     }
 }
 

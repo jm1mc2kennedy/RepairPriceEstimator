@@ -2,8 +2,11 @@ import SwiftUI
 
 struct GuestDetailView: View {
     let guest: Guest
+    @StateObject private var viewModel = GuestListViewModel()
     @State private var showingNewQuote = false
     @State private var showingEditGuest = false
+    @State private var guestQuotes: [Quote] = []
+    @State private var isLoadingQuotes = false
     
     var body: some View {
         ScrollView {
@@ -84,21 +87,24 @@ struct GuestDetailView: View {
                 VStack(alignment: .leading, spacing: 15) {
                     AppText.sectionTitle("Quote History")
                     
-                    // Mock quote history
-                    VStack(spacing: 10) {
-                        QuoteHistoryRow(
-                            quoteID: "Q-2025-000001",
-                            date: Date(),
-                            status: .completed,
-                            total: 162.00
-                        )
-                        
-                        QuoteHistoryRow(
-                            quoteID: "Q-2024-000145",
-                            date: Calendar.current.date(byAdding: .month, value: -2, to: Date()) ?? Date(),
-                            status: .completed,
-                            total: 85.00
-                        )
+                    if isLoadingQuotes {
+                        ProgressView()
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                    } else if guestQuotes.isEmpty {
+                        AppText.bodySecondary("No quotes found")
+                            .frame(maxWidth: .infinity, alignment: .center)
+                            .padding()
+                    } else {
+                        VStack(spacing: 10) {
+                            ForEach(guestQuotes) { quote in
+                                QuoteHistoryRow(quote: quote)
+                                
+                                if quote.id != guestQuotes.last?.id {
+                                    Divider()
+                                }
+                            }
+                        }
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -113,49 +119,51 @@ struct GuestDetailView: View {
         .navigationTitle("Guest Details")
         .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $showingNewQuote) {
-            QuoteCreationView()
+            QuoteCreationView(initialGuest: guest)
         }
         .sheet(isPresented: $showingEditGuest) {
-            EditGuestView(guest: guest)
+            EditGuestView(guest: guest, viewModel: viewModel)
+        }
+        .task {
+            await loadGuestQuotes()
+        }
+    }
+    
+    private func loadGuestQuotes() async {
+        isLoadingQuotes = true
+        defer { isLoadingQuotes = false }
+        
+        do {
+            let repository = CloudKitService.shared
+            let predicate = NSPredicate(format: "guestId == %@", guest.id)
+            let sortDescriptors = [NSSortDescriptor(key: "createdAt", ascending: false)]
+            guestQuotes = try await repository.query(Quote.self, predicate: predicate, sortDescriptors: sortDescriptors)
+        } catch {
+            print("❌ Error loading guest quotes: \(error)")
         }
     }
 }
 
 struct QuoteHistoryRow: View {
-    let quoteID: String
-    let date: Date
-    let status: QuoteStatus
-    let total: Decimal
+    let quote: Quote
     
     var body: some View {
-        NavigationLink(destination: QuoteDetailView(quote: mockQuote)) {
+        NavigationLink(destination: QuoteDetailView(quoteId: quote.id)) {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
-                    AppText.bodyText(quoteID)
-                    AppText.caption(formatDate(date))
+                    AppText.bodyText(quote.id)
+                    AppText.caption(formatDate(quote.createdAt))
                 }
                 
                 Spacer()
                 
                 VStack(alignment: .trailing, spacing: 4) {
-                    AppText.status(status)
-                    AppText.priceSmall(total)
+                    AppText.status(quote.status)
+                    AppText.priceSmall(quote.total, currencyCode: quote.currencyCode)
                 }
             }
             .padding(.vertical, 4)
         }
-    }
-    
-    private var mockQuote: Quote {
-        Quote(
-            id: quoteID,
-            companyId: "company1",
-            storeId: "store1",
-            guestId: "guest1",
-            status: status,
-            createdAt: date,
-            total: total
-        )
     }
     
     private func formatDate(_ date: Date) -> String {
@@ -167,16 +175,21 @@ struct QuoteHistoryRow: View {
 
 struct EditGuestView: View {
     let guest: Guest
+    @ObservedObject var viewModel: GuestListViewModel
     @State private var firstName: String
     @State private var lastName: String
     @State private var email: String
     @State private var phone: String
     @State private var notes: String
+    @State private var isSaving = false
+    @State private var saveError: String?
+    @State private var showingError = false
     
     @Environment(\.dismiss) private var dismiss
     
-    init(guest: Guest) {
+    init(guest: Guest, viewModel: GuestListViewModel) {
         self.guest = guest
+        self.viewModel = viewModel
         self._firstName = State(initialValue: guest.firstName)
         self._lastName = State(initialValue: guest.lastName)
         self._email = State(initialValue: guest.email ?? "")
@@ -209,16 +222,48 @@ struct EditGuestView: View {
                     Button("Cancel") {
                         dismiss()
                     }
+                    .disabled(isSaving)
                 }
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Save") {
-                        // Save logic
-                        dismiss()
+                        Task {
+                            await saveGuest()
+                        }
                     }
-                    .disabled(firstName.isEmpty || lastName.isEmpty)
+                    .disabled(firstName.isEmpty || lastName.isEmpty || isSaving)
                 }
             }
+            .disabled(isSaving)
+            .alert("Error", isPresented: $showingError, presenting: saveError) { _ in
+                Button("OK") { }
+            } message: { error in
+                Text(error)
+            }
+        }
+    }
+    
+    private func saveGuest() async {
+        isSaving = true
+        defer { isSaving = false }
+        
+        let updatedGuest = Guest(
+            id: guest.id,
+            companyId: guest.companyId,
+            primaryStoreId: guest.primaryStoreId,
+            firstName: firstName.trimmingCharacters(in: .whitespaces),
+            lastName: lastName.trimmingCharacters(in: .whitespaces),
+            email: email.isEmpty ? nil : email.trimmingCharacters(in: .whitespaces),
+            phone: phone.isEmpty ? nil : phone.trimmingCharacters(in: .whitespaces),
+            notes: notes.isEmpty ? nil : notes.trimmingCharacters(in: .whitespaces)
+        )
+        
+        do {
+            _ = try await viewModel.updateGuest(updatedGuest)
+            dismiss()
+        } catch {
+            saveError = error.localizedDescription
+            showingError = true
         }
     }
 }

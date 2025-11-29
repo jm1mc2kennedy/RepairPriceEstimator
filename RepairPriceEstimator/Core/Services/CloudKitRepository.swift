@@ -1,8 +1,20 @@
-import Foundation
+@preconcurrency import Foundation
 import CloudKit
 
+/// Sendable wrapper for query parameters to satisfy Swift 6 concurrency requirements
+/// NSPredicate and NSSortDescriptor are effectively immutable and safe to pass across isolation boundaries
+struct QueryParameters: @unchecked Sendable {
+    let predicate: NSPredicate?
+    let sortDescriptors: [NSSortDescriptor]?
+    
+    init(predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil) {
+        self.predicate = predicate
+        self.sortDescriptors = sortDescriptors
+    }
+}
+
 /// Protocol for data repository operations, abstracted from CloudKit
-protocol DataRepository: Sendable {
+protocol DataRepository {
     /// Save a record to the repository
     func save<T: CloudKitMappable>(_ item: T) async throws -> T
     
@@ -10,6 +22,9 @@ protocol DataRepository: Sendable {
     func fetch<T: CloudKitMappable>(_ type: T.Type, id: String) async throws -> T?
     
     /// Query records with predicate
+    func query<T: CloudKitMappable>(_ type: T.Type, parameters: QueryParameters) async throws -> [T]
+    
+    /// Query records with predicate (convenience method with default implementation)
     func query<T: CloudKitMappable>(_ type: T.Type, predicate: NSPredicate?, sortDescriptors: [NSSortDescriptor]?) async throws -> [T]
     
     /// Delete a record by ID
@@ -17,6 +32,14 @@ protocol DataRepository: Sendable {
     
     /// Check if repository is available (user signed into iCloud)
     var isAvailable: Bool { get async }
+}
+
+/// Default implementation for convenience query method
+extension DataRepository {
+    func query<T: CloudKitMappable>(_ type: T.Type, predicate: NSPredicate?, sortDescriptors: [NSSortDescriptor]?) async throws -> [T] {
+        let parameters = QueryParameters(predicate: predicate, sortDescriptors: sortDescriptors)
+        return try await query(type, parameters: parameters)
+    }
 }
 
 /// Protocol for types that can be mapped to/from CloudKit records

@@ -6,6 +6,14 @@ struct AuthCredentials: Sendable {
     let password: String
 }
 
+/// Data for user registration
+struct SignUpData: Sendable {
+    let username: String
+    let password: String
+    let displayName: String
+    let email: String
+}
+
 /// Current user session information
 struct UserSession: Sendable {
     let user: User
@@ -29,7 +37,7 @@ struct UserSession: Sendable {
 final class AuthService: ObservableObject {
     static let shared = AuthService()
     
-    private let repository: DataRepository
+    nonisolated(unsafe) private let repository: DataRepository
     
     @Published var isAuthenticated: Bool = false
     @Published var currentSession: UserSession?
@@ -68,10 +76,47 @@ final class AuthService: ObservableObject {
         }
         
         // Find the user in the database
-        let predicate = NSPredicate(format: "role == %@ AND isActive == YES", role.rawValue)
-        let users = try await repository.query(User.self, predicate: predicate, sortDescriptors: nil)
+        // CloudKit stores booleans as INT64 (1 = true, 0 = false)
+        let predicate = NSPredicate(format: "role == %@ AND isActive == 1", role.rawValue)
+        
+        print("🔍 Searching for user with role: \(role.rawValue)")
+        let users: [User]
+        do {
+            users = try await repository.query(User.self, predicate: predicate, sortDescriptors: nil)
+            print("📊 Found \(users.count) user(s) with role \(role.rawValue)")
+        } catch let error as RepositoryError {
+            print("❌ Repository error during authentication: \(error)")
+            if case .notSignedInToiCloud = error {
+                throw error
+            }
+            print("⚠️  This may indicate CloudKit schema hasn't been set up.")
+            print("   See CLOUDKIT_SCHEMA_SETUP.md for setup instructions.")
+            throw AuthError.userNotFound
+        } catch {
+            print("❌ Error querying users: \(error)")
+            print("⚠️  This may indicate CloudKit schema hasn't been set up.")
+            print("   See CLOUDKIT_SCHEMA_SETUP.md for setup instructions.")
+            throw AuthError.userNotFound
+        }
         
         guard let user = users.first else {
+            print("⚠️  No users found with role: \(role.rawValue)")
+            
+            // Try to query all users to see what exists
+            do {
+                // Use email field which is always present and queryable
+                let allUsers = try await repository.query(User.self, predicate: NSPredicate(format: "email != %@", ""), sortDescriptors: nil)
+                print("📋 Total users in database: \(allUsers.count)")
+                for u in allUsers {
+                    print("   - User: \(u.email), Role: \(u.role.rawValue), Active: \(u.isActive)")
+                }
+            } catch {
+                print("   Could not query all users: \(error)")
+            }
+            
+            print("   This likely means bootstrap hasn't run successfully.")
+            print("   Ensure CloudKit schema is set up and bootstrap completed.")
+            print("   See CLOUDKIT_SCHEMA_SETUP.md for setup instructions.")
             throw AuthError.userNotFound
         }
         
@@ -93,6 +138,90 @@ final class AuthService: ObservableObject {
         isAuthenticated = false
         clearStoredCredentials()
         print("👋 User signed out")
+    }
+    
+    /// Sign up a new user
+    func signUp(data: SignUpData) async throws {
+        isLoading = true
+        defer { isLoading = false }
+        
+        // Check if email is already taken
+        let predicate = NSPredicate(format: "email == %@", data.email)
+        let existingUsers = try await repository.query(User.self, predicate: predicate, sortDescriptors: nil)
+        if !existingUsers.isEmpty {
+            throw AuthError.emailAlreadyExists
+        }
+        
+        // Get or create company and store
+        let (company, store) = try await getOrCreateCompanyAndStore()
+        
+        // Create new user with ASSOCIATE role by default
+        let newUser = User(
+            companyId: company.id,
+            storeIds: [store.id],
+            role: .associate,
+            displayName: data.displayName,
+            email: data.email,
+            isActive: true
+        )
+        
+        let savedUser = try await repository.save(newUser)
+        
+        // Store credentials for auto-login
+        let credentials = AuthCredentials(username: data.username, password: data.password)
+        storeCredentials(credentials)
+        
+        // Authenticate the newly created user
+        try await authenticate(credentials: credentials)
+        
+        print("✅ User signed up successfully: \(savedUser.displayName)")
+    }
+    
+    /// Get existing company and store, or create default ones if they don't exist
+    private func getOrCreateCompanyAndStore() async throws -> (Company, Store) {
+        // Try to get existing company
+        let predicate = NSPredicate(format: "name != %@", "")
+        let sortDesc = [NSSortDescriptor(key: "name", ascending: true)]
+        let companies = try await repository.query(Company.self, predicate: predicate, sortDescriptors: sortDesc)
+        
+        if let company = companies.first {
+            // Get existing store for this company
+            let storePredicate = NSPredicate(format: "companyId == %@", company.id)
+            let stores = try await repository.query(Store.self, predicate: storePredicate, sortDescriptors: [NSSortDescriptor(key: "name", ascending: true)])
+            
+            if let store = stores.first {
+                return (company, store)
+            } else {
+                // Create default store
+                let store = Store(
+                    companyId: company.id,
+                    name: "Main Store",
+                    storeCode: "001",
+                    location: "123 Main St, Anytown, USA",
+                    phone: "(555) 123-4567"
+                )
+                let savedStore = try await repository.save(store)
+                return (company, savedStore)
+            }
+        } else {
+            // Create default company and store
+            let company = Company(
+                name: "Repair Price Estimator",
+                primaryContactInfo: "info@jewelryrepair.com"
+            )
+            let savedCompany = try await repository.save(company)
+            
+            let store = Store(
+                companyId: savedCompany.id,
+                name: "Main Store",
+                storeCode: "001",
+                location: "123 Main St, Anytown, USA",
+                phone: "(555) 123-4567"
+            )
+            let savedStore = try await repository.save(store)
+            
+            return (savedCompany, savedStore)
+        }
     }
     
     /// Attempt to restore previous session on app launch
@@ -207,21 +336,27 @@ enum AuthError: Error, LocalizedError {
     case noAccessibleStores
     case sessionExpired
     case insufficientPermissions
+    case emailAlreadyExists
     
     var errorDescription: String? {
         switch self {
         case .invalidCredentials:
-            return "Invalid username or password"
+            return "Invalid username or password. Please check your credentials and try again."
         case .userNotFound:
-            return "User account not found"
+            return "User account not found. The system may not be initialized yet. " +
+                   "Ensure CloudKit schema is set up and bootstrap has run successfully. " +
+                   "See CLOUDKIT_SCHEMA_SETUP.md for setup instructions."
         case .companyNotFound:
-            return "Company information not found"
+            return "Company information not found. The system may not be initialized yet."
         case .noAccessibleStores:
-            return "No accessible stores found for user"
+            return "No accessible stores found for user. Please contact your administrator."
         case .sessionExpired:
-            return "Session has expired. Please log in again"
+            return "Session has expired. Please log in again."
         case .insufficientPermissions:
-            return "Insufficient permissions for this action"
+            return "Insufficient permissions for this action."
+        case .emailAlreadyExists:
+            return "An account with this email already exists. " +
+                   "Please use a different email or sign in instead."
         }
     }
 }

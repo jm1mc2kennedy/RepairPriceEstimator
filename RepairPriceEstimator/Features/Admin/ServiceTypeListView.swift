@@ -1,29 +1,35 @@
 import SwiftUI
 
 struct ServiceTypeListView: View {
-    @State private var searchText = ""
-    @State private var selectedCategory: ServiceCategory? = nil
+    @StateObject private var viewModel = ServiceTypeListViewModel()
     @State private var showingNewServiceType = false
+    @State private var selectedServiceType: ServiceType?
+    @State private var showingEdit = false
     
     var body: some View {
         VStack {
             // Search and Filter
             VStack(spacing: 10) {
-                SearchBar(text: $searchText)
+                SearchBar(text: $viewModel.searchText)
+                    .onChange(of: viewModel.searchText) { _, _ in
+                        Task { await viewModel.loadServiceTypes() }
+                    }
                 
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 10) {
-                        FilterChip(title: "All", isSelected: selectedCategory == nil) {
-                            selectedCategory = nil
+                        FilterChip(title: "All", isSelected: viewModel.selectedCategory == nil) {
+                            viewModel.selectedCategory = nil
+                            Task { await viewModel.loadServiceTypes() }
                         }
                         
                         ForEach(ServiceCategory.allCases, id: \.self) { category in
                             FilterChip(
                                 title: category.displayName,
-                                isSelected: selectedCategory == category,
+                                isSelected: viewModel.selectedCategory == category,
                                 color: category.color
                             ) {
-                                selectedCategory = category
+                                viewModel.selectedCategory = category
+                                Task { await viewModel.loadServiceTypes() }
                             }
                         }
                     }
@@ -33,19 +39,56 @@ struct ServiceTypeListView: View {
             .padding(.vertical)
             
             // Service Types List
-            List {
-                ForEach(mockServiceTypes) { serviceType in
-                    NavigationLink(destination: ServiceTypeEditView(serviceType: serviceType)) {
-                        ServiceTypeRowView(serviceType: serviceType)
+            if viewModel.isLoading && viewModel.serviceTypes.isEmpty {
+                ProgressView()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else if viewModel.serviceTypes.isEmpty {
+                VStack(spacing: 20) {
+                    Image(systemName: "wrench.and.screwdriver")
+                        .font(.system(size: 60))
+                        .foregroundColor(.textTertiary)
+                    AppText.bodyText("No service types found")
+                        .foregroundColor(.textSecondary)
+                    Button("Add Service Type") {
+                        showingNewServiceType = true
+                    }
+                    .padding()
+                    .background(Color.accentGreen)
+                    .foregroundColor(.white)
+                    .cornerRadius(8)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                List {
+                    ForEach(viewModel.serviceTypes) { serviceType in
+                        Button(action: {
+                            selectedServiceType = serviceType
+                            showingEdit = true
+                        }) {
+                            ServiceTypeRowView(serviceType: serviceType)
+                        }
+                        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                            Button(role: .destructive) {
+                                Task {
+                                    do {
+                                        try await viewModel.deleteServiceType(serviceType)
+                                    } catch {
+                                        // Error shown via viewModel.showError
+                                    }
+                                }
+                            } label: {
+                                Label("Delete", systemImage: "trash")
+                            }
+                        }
                     }
                 }
-            }
-            .refreshable {
-                // Refresh logic
+                .refreshable {
+                    await viewModel.refresh()
+                }
             }
         }
         .navigationTitle("Service Types")
-        .searchable(text: $searchText)
+        .searchable(text: $viewModel.searchText)
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button("Add") {
@@ -54,42 +97,21 @@ struct ServiceTypeListView: View {
             }
         }
         .sheet(isPresented: $showingNewServiceType) {
-            ServiceTypeEditView(serviceType: nil)
+            ServiceTypeEditView(serviceType: nil, viewModel: viewModel)
         }
-    }
-    
-    private var mockServiceTypes: [ServiceType] {
-        [
-            ServiceType(
-                companyId: "company1",
-                name: "Ring Sizing Up",
-                category: .jewelryRepair,
-                defaultSku: "RS-UP",
-                defaultLaborMinutes: 30,
-                defaultMetalUsageGrams: 0.5,
-                baseRetail: 45.00,
-                baseCost: 15.00
-            ),
-            ServiceType(
-                companyId: "company1",
-                name: "Prong Retip",
-                category: .jewelryRepair,
-                defaultSku: "PR-TIP",
-                defaultLaborMinutes: 15,
-                defaultMetalUsageGrams: 0.1,
-                baseRetail: 25.00,
-                baseCost: 8.00
-            ),
-            ServiceType(
-                companyId: "company1",
-                name: "Watch Battery",
-                category: .watchRepair,
-                defaultSku: "WB-REP",
-                defaultLaborMinutes: 10,
-                baseRetail: 15.00,
-                baseCost: 5.00
-            )
-        ]
+        .sheet(isPresented: $showingEdit) {
+            if let serviceType = selectedServiceType {
+                ServiceTypeEditView(serviceType: serviceType, viewModel: viewModel)
+            }
+        }
+        .task {
+            await viewModel.loadServiceTypes()
+        }
+        .alert("Error", isPresented: $viewModel.showError, presenting: viewModel.errorMessage) { _ in
+            Button("OK") { }
+        } message: { error in
+            Text(error)
+        }
     }
 }
 

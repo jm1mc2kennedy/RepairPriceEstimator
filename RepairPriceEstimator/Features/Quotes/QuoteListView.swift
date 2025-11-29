@@ -1,76 +1,86 @@
 import SwiftUI
 
 struct QuoteListView: View {
-    @State private var searchText = ""
-    @State private var selectedStatus: QuoteStatus? = nil
+    @StateObject private var viewModel = QuoteListViewModel()
     
     var body: some View {
         VStack {
-            // Search and Filter
-            VStack(spacing: 10) {
-                SearchBar(text: $searchText)
-                
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 10) {
-                        FilterChip(title: "All", isSelected: selectedStatus == nil) {
-                            selectedStatus = nil
+            if viewModel.isLoading && viewModel.quotes.isEmpty {
+                ProgressView()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                // Search and Filter
+                VStack(spacing: 10) {
+                    SearchBar(text: $viewModel.searchText)
+                        .onChange(of: viewModel.searchText) { _, _ in
+                            Task { await viewModel.loadQuotes() }
                         }
-                        
-                        ForEach(QuoteStatus.allCases, id: \.self) { status in
-                            FilterChip(
-                                title: status.displayName,
-                                isSelected: selectedStatus == status,
-                                color: status.color
-                            ) {
-                                selectedStatus = status
+                    
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 10) {
+                            FilterChip(title: "All", isSelected: viewModel.selectedStatus == nil) {
+                                viewModel.selectedStatus = nil
+                                Task { await viewModel.loadQuotes() }
+                            }
+                            
+                            ForEach(QuoteStatus.allCases, id: \.self) { status in
+                                FilterChip(
+                                    title: status.displayName,
+                                    isSelected: viewModel.selectedStatus == status,
+                                    color: status.color
+                                ) {
+                                    viewModel.selectedStatus = status
+                                    Task { await viewModel.loadQuotes() }
+                                }
+                            }
+                        }
+                        .padding(.horizontal)
+                    }
+                }
+                .padding(.vertical)
+                
+                // Quote List
+                if viewModel.quotes.isEmpty && !viewModel.isLoading {
+                    VStack(spacing: 20) {
+                        Image(systemName: "doc.text.magnifyingglass")
+                            .font(.system(size: 60))
+                            .foregroundColor(.textTertiary)
+                        AppText.bodyText("No quotes found")
+                            .foregroundColor(.textSecondary)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else {
+                    List {
+                        ForEach(viewModel.quotes) { quote in
+                            NavigationLink(destination: QuoteDetailView(quoteId: quote.id)) {
+                                QuoteRowView(quote: quote)
+                            }
+                        }
+                        .onDelete { indexSet in
+                            for index in indexSet {
+                                let quote = viewModel.quotes[index]
+                                Task {
+                                    await viewModel.deleteQuote(quote)
+                                }
                             }
                         }
                     }
-                    .padding(.horizontal)
-                }
-            }
-            .padding(.vertical)
-            
-            // Quote List
-            List {
-                // Placeholder quotes
-                ForEach(mockQuotes) { quote in
-                    NavigationLink(destination: QuoteDetailView(quote: quote)) {
-                        QuoteRowView(quote: quote)
+                    .refreshable {
+                        await viewModel.refresh()
                     }
                 }
             }
-            .refreshable {
-                // Refresh logic
-            }
         }
         .navigationTitle("Quotes")
-        .searchable(text: $searchText)
-    }
-    
-    private var mockQuotes: [Quote] {
-        [
-            Quote(
-                id: "Q-2025-000001",
-                companyId: "company1",
-                storeId: "store1",
-                guestId: "guest1",
-                status: .draft,
-                subtotal: 150.00,
-                tax: 12.00,
-                total: 162.00
-            ),
-            Quote(
-                id: "Q-2025-000002",
-                companyId: "company1",
-                storeId: "store1",
-                guestId: "guest2",
-                status: .presented,
-                subtotal: 245.00,
-                tax: 19.60,
-                total: 264.60
-            )
-        ]
+        .searchable(text: $viewModel.searchText)
+        .task {
+            await viewModel.loadQuotes()
+        }
+        .alert("Error", isPresented: $viewModel.showError, presenting: viewModel.errorMessage) { _ in
+            Button("OK") { }
+        } message: { error in
+            Text(error)
+        }
     }
 }
 
